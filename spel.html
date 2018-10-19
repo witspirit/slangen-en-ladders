@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slangen en Ladders</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <style>
+        div {
+            border: 1px black;
+        }
+
+        .speler {
+            display: inline-block;
+            width: 100px;
+        }
+    </style>
+    <script language="JavaScript">
+        let spelbord = [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+            20, 21, 22, 23, 24, 25, 26, 35, 28, 29,
+            30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+            3, 41, 42, 22, 44, 45, 46, 47, 9, 49,
+            90, 6, 52, 53, 54, 55, 74, 18, 58, 83,
+            60, 20, 84, 63, 64, 87, 66, 67, 30, 69,
+            70, 71, 0, 73, 74, 93, 76, 81, 78, 79,
+            80, 81, 82, 12, 84, 85, 86, 87, 88, 89,
+            90, 33, 92, 93, 25, 95, 96, 97, 28, 99
+        ];
+
+        let plek = [-1, -1, -1, -1];
+        let plekScherm = [null, null, null, null];
+
+        $(document).ready(function () {
+
+            spelbord.forEach((bestemming, positie) => {
+                $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
+            });
+
+            $('#speelSarah').on("click", () => speelBeurt(0));
+            $('#speelLiesbeth').on("click", () => speelBeurt(1));
+            $('#speelMama').on("click", () => speelBeurt(2));
+            $('#speelPapa').on("click", () => speelBeurt(3));
+
+            plekScherm[0] = $('#plekSarah');
+            plekScherm[1] = $('#plekLiesbeth');
+            plekScherm[2] = $('#plekMama');
+            plekScherm[3] = $('#plekPapa');
+        });
+
+        function gooiDobbelsteen() {
+            return getRandomInt(1, 6);
+        }
+
+        function speelBeurt(spelerNr) {
+            let dobbelsteen1 = gooiDobbelsteen();
+            let dobbelsteen2 = gooiDobbelsteen();
+
+            let stapjesVooruit = dobbelsteen1 + dobbelsteen2;
+
+            console.log("d1 = "+dobbelsteen1+" ; d2 = "+dobbelsteen2+" ; stapjesVooruit = "+stapjesVooruit);
+
+            let landingsPlaats  = plek[spelerNr] + stapjesVooruit;
+
+            if (landingsPlaats >= spelbord.length) {
+                alert("Speler "+(spelerNr+1)+" is de winnaar !");
+            }
+
+            plek[spelerNr] = spelbord[ landingsPlaats ] ;
+
+            console.log("Nieuwe positie voor speler "+spelerNr+ " = "+plek[spelerNr]);
+
+            plekScherm[spelerNr].text(plek[spelerNr]);
+
+
+         }
+
+        /**
+         * Returns a random integer between min (inclusive) and max (inclusive)
+         * Using Math.round() will give you a non-uniform distribution!
+         */
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    </script>
+</head>
+<body>
+<h1>Slangen en Ladders</h1>
+<hr/>
+
+<div class="posities">
+    <div class="speler">
+        <div>Sarah</div>
+        <div id="plekSarah">0</div>
+        <div><button id="speelSarah">Speel Beurt</button></div>
+    </div>
+    <div class="speler">
+        <div>Liesbeth</div>
+        <div id="plekLiesbeth">0</div>
+        <div><button id="speelLiesbeth">Speel Beurt</button></div>
+    </div>
+    <div class="speler">
+        <div>Mama</div>
+        <div id="plekMama">0</div>
+        <div><button id="speelMama">Speel Beurt</button></div>
+    </div>
+    <div class="speler">
+        <div>Papa</div>
+        <div id="plekPapa">0</div>
+        <div><button id="speelPapa">Speel Beurt</button></div>
+    </div>
+</div>
+
+<div class="spelbord">
+
+</div>
+
+
+</body>
+</html>
