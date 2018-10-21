@@ -14,6 +14,10 @@
             display: inline-block;
             width: 100px;
         }
+
+        #spelbord {
+            background-image: url('spelbord-small.jpg');
+        }
     </style>
     <script language="JavaScript">
         let spelbord = [
@@ -34,9 +38,9 @@
 
         $(document).ready(function () {
 
-            spelbord.forEach((bestemming, positie) => {
-                $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
-            });
+            // spelbord.forEach((bestemming, positie) => {
+            //     $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
+            // });
 
             $('#speelSarah').on("click", () => speelBeurt(0));
             $('#speelLiesbeth').on("click", () => speelBeurt(1));
@@ -112,9 +116,13 @@
     </div>
 </div>
 
-<div class="spelbord">
+<!--<div class="spelbord">-->
 
-</div>
+<!--</div>-->
+
+<canvas id="spelbord" width="800" height="795">
+    <img src="spelbord-small.jpg" alt="Slangen-en-ladders Spelbord"/>
+</canvas>
 
 
 </body>
