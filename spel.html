@@ -51,6 +51,8 @@
             plekScherm[1] = $('#plekLiesbeth');
             plekScherm[2] = $('#plekMama');
             plekScherm[3] = $('#plekPapa');
+
+            drawGrid();
         });
 
         function gooiDobbelsteen() {
@@ -86,6 +88,41 @@
          */
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function drawGrid() {
+            let spelbord = document.getElementById('spelbord');
+            let ctx = spelbord.getContext('2d');
+            if (!ctx) {
+                return;
+            }
+
+            const bordOffsetX = 25;
+            const bordOffsetY = 32;
+            const bordWidth = 735;
+            const bordHeight = 740;
+
+            const cellHeight = bordHeight / 10;
+            const cellWidth = bordWidth / 10;
+
+            ctx.strokeRect(bordOffsetX, bordOffsetY, bordWidth, bordHeight);
+
+            for (let i=1; i <= 10; i++) {
+                const rowPos = bordOffsetY+(i*cellHeight);
+                const colPos = bordOffsetX+(i*cellWidth);
+
+                // Horizontal line
+                ctx.beginPath();
+                ctx.moveTo(bordOffsetX, rowPos);
+                ctx.lineTo(bordOffsetX+bordWidth, rowPos);
+                ctx.stroke();
+
+                // Vertical line
+                ctx.beginPath();
+                ctx.moveTo(colPos, bordOffsetY);
+                ctx.lineTo(colPos, bordOffsetY+bordHeight);
+                ctx.stroke();
+            }
         }
     </script>
 </head>
