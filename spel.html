@@ -20,6 +20,14 @@
         }
     </style>
     <script language="JavaScript">
+        const bordOffsetX = 25;
+        const bordOffsetY = 32;
+        const bordWidth = 735;
+        const bordHeight = 740;
+
+        const cellHeight = bordHeight / 10;
+        const cellWidth = bordWidth / 10;
+
         let spelbord = [
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
             10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
@@ -97,14 +105,6 @@
                 return;
             }
 
-            const bordOffsetX = 25;
-            const bordOffsetY = 32;
-            const bordWidth = 735;
-            const bordHeight = 740;
-
-            const cellHeight = bordHeight / 10;
-            const cellWidth = bordWidth / 10;
-
             ctx.strokeRect(bordOffsetX, bordOffsetY, bordWidth, bordHeight);
 
             for (let i=1; i <= 10; i++) {
@@ -123,6 +123,35 @@
                 ctx.lineTo(colPos, bordOffsetY+bordHeight);
                 ctx.stroke();
             }
+
+            drawPawn(9 , 'green', ctx);
+            drawPawn(10 , 'orange', ctx);
+            drawPawn(11, 'red', ctx);
+            drawPawn(19, 'blue', ctx);
+            drawPawn(20, 'yellow', ctx);
+        }
+
+        // Attempt to draw a pawn
+        function drawPawn(position, style, canvas) {
+            if (position < 0 || position > 100) {
+                return;
+            }
+
+            const row = Math.floor(position / 10);
+            let col = Math.floor(position % 10);
+            // The bord waves to the top, so the even lines we move right, the odd lines we move left
+            if (row % 2 != 0) {
+                col = 9 - col;
+            }
+
+            const x = bordOffsetX+(cellWidth/2) + (col*cellWidth);
+            const y = bordOffsetY+bordHeight-(cellHeight/2) - (row*cellHeight);
+            const radius = (cellHeight/2) - 15;
+
+            canvas.beginPath();
+            canvas.arc(x, y, radius, 0, 2*Math.PI);
+            canvas.fillStyle = style;
+            canvas.fill();
         }
     </script>
 </head>
