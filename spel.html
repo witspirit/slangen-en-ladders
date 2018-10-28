@@ -59,21 +59,7 @@
 
 
 <script language="JavaScript">
-    let bord = {
-        offsetX : 25,
-        offsetY : 32,
-        width : 735,
-        height : 740,
-        rows : 10,
-        cols : 10
-    };
-
-    let cell = {
-        width : bord.width / bord.cols,
-        height : bord.height / bord.rows
-    };
-
-    let canvas = document.getElementById('spelbord').getContext('2d');
+    let bordUi = CanvasBord(document.getElementById('spelbord').getContext('2d'));
 
     let spelbord = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -108,17 +94,7 @@
         plekScherm[2] = $('#plekMama');
         plekScherm[3] = $('#plekPapa');
 
-        drawGrid();
-
-        // Test Pattern
-        // drawPawn(0, 'green');
-        // drawPawn(1, 'blue');
-        // drawPawn(9, 'red');
-        //
-        // drawPawn(10, 'yellow');
-        // drawPawn(11, 'orange');
-        // drawPawn(99, 'black');
-        // drawPawn(100, 'white');
+        bordUi.tekenSpelbord();
     });
 
     function gooiDobbelsteen() {
@@ -148,8 +124,7 @@
 
         plekScherm[spelerNr].text(plek[spelerNr]+1); // Iternally we have 0 based, but visually we start from 1
 
-        clearPawn(oudePlek);
-        drawPawn(nieuwePlek, kleur[spelerNr]);
+        bordUi.verzetPion(kleur[spelerNr], oudePlek, nieuwePlek);
     }
 
     /**
@@ -160,87 +135,128 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function calculateRowColFromPosition(position) {
-        const row = (bord.rows - 1) - Math.floor(position / bord.cols); // Our positions move up from below to the top. Hence, we start at the bottom row. -1 due to zero base.
 
-        let col = Math.floor(position % bord.cols);
-        // The bord waves to the top, so the odd lines we move right, the even lines we move left
-        if (row % 2 === 0) {
-            col = (bord.cols-1) - col; // -1 since we are zero based
+
+    function CanvasBord(canvas) {
+        const bord = {
+            offsetX : 25,
+            offsetY : 32,
+            width : 735,
+            height : 740,
+            rows : 10,
+            cols : 10
+        };
+
+        let cell = {
+            width : bord.width / bord.cols,
+            height : bord.height / bord.rows
+        };
+
+        function calculateRowColFromPosition(position) {
+            const row = (bord.rows - 1) - Math.floor(position / bord.cols); // Our positions move up from below to the top. Hence, we start at the bottom row. -1 due to zero base.
+
+            let col = Math.floor(position % bord.cols);
+            // The bord waves to the top, so the odd lines we move right, the even lines we move left
+            if (row % 2 === 0) {
+                col = (bord.cols-1) - col; // -1 since we are zero based
+            }
+
+            return {
+                row : row,
+                col : col
+            };
+        }
+
+
+        function drawGrid() {
+            canvas.strokeRect(bord.offsetX, bord.offsetY, bord.width, bord.height);
+
+            for (let i=1; i <= bord.rows; i++) {
+                const rowPos = bord.offsetY+(i*cell.height);
+
+                // Horizontal line
+                canvas.beginPath();
+                canvas.moveTo(bord.offsetX, rowPos);
+                canvas.lineTo(bord.offsetX+bord.width, rowPos);
+                canvas.stroke();
+            }
+
+            for (let i=1; i <= bord.cols; i++) {
+                const colPos = bord.offsetX+(i*cell.width);
+
+                // Vertical line
+                canvas.beginPath();
+                canvas.moveTo(colPos, bord.offsetY);
+                canvas.lineTo(colPos, bord.offsetY+bord.height);
+                canvas.stroke();
+            }
+
+        }
+
+
+        // Attempt to draw a pawn
+        function drawPawn(position, style) {
+            canvas.save();
+
+            if (position < 0 || position >= spelbord.length) {
+                return;
+            }
+
+            const {row, col} = calculateRowColFromPosition(position);
+
+            const x = bord.offsetX+(cell.width/2) + (col*cell.width);
+            const y = bord.offsetY+(cell.height/2) + (row*cell.height);
+            const radius = (cell.height/2) - 15;
+
+            canvas.beginPath();
+            canvas.arc(x, y, radius, 0, 2*Math.PI);
+            canvas.fillStyle = style;
+            canvas.fill();
+
+            canvas.restore();
+        }
+
+
+        function clearPawn(position) {
+            if (position < 0 || position >= spelbord.length) {
+                return;
+            }
+
+            const {row, col} = calculateRowColFromPosition(position);
+
+            // Pawn is cellHeight - 30 in diameter. So we take it slightly larger to clear it
+            const width = cell.width  - 28;
+            const height = cell.height - 28;
+            // Rectangle should be a bounded box around the circular pawn
+            const x = bord.offsetX + 14 + (col * cell.width); // Left
+            const y = bord.offsetY + 14 + (row * cell.height); // Top
+
+            canvas.clearRect(x, y, width, height);
+        }
+
+        function movePawn(style, from, to) {
+            clearPawn(from);
+            drawPawn(to, style);
+        }
+
+        function drawTestPattern() {
+            drawPawn(0, 'green');
+            drawPawn(1, 'blue');
+            drawPawn(9, 'red');
+
+            drawPawn(10, 'yellow');
+            drawPawn(11, 'orange');
+            drawPawn(99, 'black');
+            drawPawn(100, 'white');
         }
 
         return {
-            row : row,
-            col : col
-        };
+            tekenSpelbord : drawGrid,
+            verzetPion : movePawn,
+            toonTestPatroon : drawTestPattern
+        }
     }
 
-
-    function drawGrid() {
-        canvas.strokeRect(bord.offsetX, bord.offsetY, bord.width, bord.height);
-
-        for (let i=1; i <= bord.rows; i++) {
-            const rowPos = bord.offsetY+(i*cell.height);
-
-            // Horizontal line
-            canvas.beginPath();
-            canvas.moveTo(bord.offsetX, rowPos);
-            canvas.lineTo(bord.offsetX+bord.width, rowPos);
-            canvas.stroke();
-        }
-
-        for (let i=1; i <= bord.cols; i++) {
-            const colPos = bord.offsetX+(i*cell.width);
-
-            // Vertical line
-            canvas.beginPath();
-            canvas.moveTo(colPos, bord.offsetY);
-            canvas.lineTo(colPos, bord.offsetY+bord.height);
-            canvas.stroke();
-        }
-
-    }
-
-
-    // Attempt to draw a pawn
-    function drawPawn(position, style) {
-        canvas.save();
-
-        if (position < 0 || position >= spelbord.length) {
-            return;
-        }
-
-        const {row, col} = calculateRowColFromPosition(position);
-
-        const x = bord.offsetX+(cell.width/2) + (col*cell.width);
-        const y = bord.offsetY+(cell.height/2) + (row*cell.height);
-        const radius = (cell.height/2) - 15;
-
-        canvas.beginPath();
-        canvas.arc(x, y, radius, 0, 2*Math.PI);
-        canvas.fillStyle = style;
-        canvas.fill();
-
-        canvas.restore();
-    }
-
-
-    function clearPawn(position) {
-        if (position < 0 || position >= spelbord.length) {
-            return;
-        }
-
-        const {row, col} = calculateRowColFromPosition(position);
-
-        // Pawn is cellHeight - 30 in diameter. So we take it slightly larger to clear it
-        const width = cell.width  - 28;
-        const height = cell.height - 28;
-        // Rectangle should be a bounded box around the circular pawn
-        const x = bord.offsetX + 14 + (col * cell.width); // Left
-        const y = bord.offsetY + 14 + (row * cell.height); // Top
-
-        canvas.clearRect(x, y, width, height);
-    }
 </script>
 
 </body>
