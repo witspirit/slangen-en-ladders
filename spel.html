@@ -19,189 +19,7 @@
             background-image: url('spelbord-small.jpg');
         }
     </style>
-    <script language="JavaScript">
-        const bordOffsetX = 25;
-        const bordOffsetY = 32;
-        const bordWidth = 735;
-        const bordHeight = 740;
 
-        const cellHeight = bordHeight / 10;
-        const cellWidth = bordWidth / 10;
-
-        let spelbord = [
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-            10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 35, 28, 29,
-            30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-            3, 41, 42, 22, 44, 45, 46, 47, 9, 49,
-            90, 6, 52, 53, 54, 55, 74, 18, 58, 83,
-            60, 20, 84, 63, 64, 87, 66, 67, 30, 69,
-            70, 71, 0, 73, 74, 93, 76, 81, 78, 79,
-            80, 81, 82, 12, 84, 85, 86, 87, 88, 89,
-            90, 33, 92, 93, 25, 95, 96, 97, 28, 99
-        ];
-
-        let plek = [-1, -1, -1, -1];
-        let plekScherm = [null, null, null, null];
-        let kleur = ['red', 'yellow', 'green', 'blue'];
-
-        $(document).ready(function () {
-
-            // spelbord.forEach((bestemming, positie) => {
-            //     $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
-            // });
-
-            $('#speelSarah').on("click", () => speelBeurt(0));
-            $('#speelLiesbeth').on("click", () => speelBeurt(1));
-            $('#speelMama').on("click", () => speelBeurt(2));
-            $('#speelPapa').on("click", () => speelBeurt(3));
-
-            plekScherm[0] = $('#plekSarah');
-            plekScherm[1] = $('#plekLiesbeth');
-            plekScherm[2] = $('#plekMama');
-            plekScherm[3] = $('#plekPapa');
-
-            drawGrid();
-        });
-
-        function gooiDobbelsteen() {
-            return getRandomInt(1, 6);
-        }
-
-        function speelBeurt(spelerNr) {
-            let dobbelsteen1 = gooiDobbelsteen();
-            let dobbelsteen2 = gooiDobbelsteen();
-
-            let stapjesVooruit = dobbelsteen1 + dobbelsteen2;
-
-            console.log("d1 = "+dobbelsteen1+" ; d2 = "+dobbelsteen2+" ; stapjesVooruit = "+stapjesVooruit);
-
-            let landingsPlaats  = plek[spelerNr] + stapjesVooruit;
-
-            if (landingsPlaats >= spelbord.length) {
-                alert("Speler "+(spelerNr+1)+" is de winnaar !");
-            }
-
-            let oudePlek = plek[spelerNr];
-            let nieuwePlek = spelbord[ landingsPlaats ];
-
-            plek[spelerNr] = nieuwePlek ;
-
-            console.log("Nieuwe positie voor speler "+spelerNr+ " = "+plek[spelerNr]);
-
-            plekScherm[spelerNr].text(plek[spelerNr]);
-
-            let canvas = getCanvas();
-            clearPawn(oudePlek, canvas);
-            drawPawn(nieuwePlek, kleur[spelerNr], canvas);
-         }
-
-        /**
-         * Returns a random integer between min (inclusive) and max (inclusive)
-         * Using Math.round() will give you a non-uniform distribution!
-         */
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function getCanvas(){
-            return document.getElementById('spelbord').getContext('2d');
-        }
-
-        function drawGrid() {
-            let ctx = getCanvas();
-            if (!ctx) {
-                return;
-            }
-
-            ctx.strokeRect(bordOffsetX, bordOffsetY, bordWidth, bordHeight);
-
-            for (let i=1; i <= 10; i++) {
-                const rowPos = bordOffsetY+(i*cellHeight);
-                const colPos = bordOffsetX+(i*cellWidth);
-
-                // Horizontal line
-                ctx.beginPath();
-                ctx.moveTo(bordOffsetX, rowPos);
-                ctx.lineTo(bordOffsetX+bordWidth, rowPos);
-                ctx.stroke();
-
-                // Vertical line
-                ctx.beginPath();
-                ctx.moveTo(colPos, bordOffsetY);
-                ctx.lineTo(colPos, bordOffsetY+bordHeight);
-                ctx.stroke();
-            }
-
-            // drawPawn(9 , 'green', ctx);
-            // drawPawn(10 , 'orange', ctx);
-            // clearPawn(10, ctx);
-            // drawPawn(11, 'red', ctx);
-            // drawPawn(19, 'blue', ctx);
-            // clearPawn(19, ctx);
-            // drawPawn(20, 'yellow', ctx);
-        }
-
-        // Attempt to draw a pawn
-        function drawPawn(position, style, canvas) {
-            canvas.save();
-
-            if (position < 0 || position > 100) {
-                return;
-            }
-
-            const {row, col} = calculateRowColFromPosition(position);
-
-            // const row = Math.floor(position / 10);
-            // let col = Math.floor(position % 10);
-            // // The bord waves to the top, so the even lines we move right, the odd lines we move left
-            // if (row % 2 != 0) {
-            //     col = 9 - col;
-            // }
-
-            const x = bordOffsetX+(cellWidth/2) + (col*cellWidth);
-            const y = bordOffsetY+bordHeight-(cellHeight/2) - (row*cellHeight);
-            const radius = (cellHeight/2) - 15;
-
-            canvas.beginPath();
-            canvas.arc(x, y, radius, 0, 2*Math.PI);
-            canvas.fillStyle = style;
-            canvas.fill();
-
-            canvas.restore();
-        }
-
-        function calculateRowColFromPosition(position) {
-            const row = Math.floor(position / 10);
-            let col = Math.floor(position % 10);
-            // The bord waves to the top, so the even lines we move right, the odd lines we move left
-            if (row % 2 != 0) {
-                col = 9 - col;
-            }
-
-            return {
-                row : row,
-                col : col
-            };
-        }
-
-        function clearPawn(position, canvas) {
-            if (position < 0 || position > 100) {
-                return;
-            }
-
-            const {row, col} = calculateRowColFromPosition(position);
-
-            // Pawn is cellHeight - 30 in diameter. So we take it slightly larger to clear it
-            const width = cellWidth  - 28;
-            const height = cellHeight - 28;
-            // Rectangle should be a bounded box around the circular pawn
-            const x = bordOffsetX + 14 + (col * cellWidth); // Left (we work from left to right for columns)
-            const y = bordOffsetY + bordHeight - cellHeight + 14 - (row*cellHeight); // Top (we work from bottom to top for rows)
-
-            canvas.clearRect(x, y, width, height);
-        }
-    </script>
 </head>
 <body>
 <h1>Slangen en Ladders</h1>
@@ -238,6 +56,187 @@
     <img src="spelbord-small.jpg" alt="Slangen-en-ladders Spelbord"/>
 </canvas>
 
+
+
+<script language="JavaScript">
+    let bord = {
+        offsetX : 25,
+        offsetY : 32,
+        width : 735,
+        height : 740,
+        rows : 10,
+        cols : 10
+    };
+
+    let cell = {
+        width : bord.width / bord.cols,
+        height : bord.height / bord.rows
+    };
+
+    let canvas = document.getElementById('spelbord').getContext('2d');
+
+    let spelbord = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+        10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24, 25, 26, 35, 28, 29,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+        3, 41, 42, 22, 44, 45, 46, 47, 9, 49,
+        90, 6, 52, 53, 54, 55, 74, 18, 58, 83,
+        60, 20, 84, 63, 64, 87, 66, 67, 30, 69,
+        70, 71, 0, 73, 74, 93, 76, 81, 78, 79,
+        80, 81, 82, 12, 84, 85, 86, 87, 88, 89,
+        90, 33, 92, 93, 25, 95, 96, 97, 28, 99
+    ];
+
+    let plek = [-1, -1, -1, -1];
+    let plekScherm = [null, null, null, null];
+    let kleur = ['red', 'yellow', 'green', 'blue'];
+
+    $(document).ready(function () {
+
+        // spelbord.forEach((bestemming, positie) => {
+        //     $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
+        // });
+
+        $('#speelSarah').on("click", () => speelBeurt(0));
+        $('#speelLiesbeth').on("click", () => speelBeurt(1));
+        $('#speelMama').on("click", () => speelBeurt(2));
+        $('#speelPapa').on("click", () => speelBeurt(3));
+
+        plekScherm[0] = $('#plekSarah');
+        plekScherm[1] = $('#plekLiesbeth');
+        plekScherm[2] = $('#plekMama');
+        plekScherm[3] = $('#plekPapa');
+
+        drawGrid();
+
+        // Test Pattern
+        // drawPawn(0, 'green');
+        // drawPawn(1, 'blue');
+        // drawPawn(9, 'red');
+        //
+        // drawPawn(10, 'yellow');
+        // drawPawn(11, 'orange');
+    });
+
+    function gooiDobbelsteen() {
+        return getRandomInt(1, 6);
+    }
+
+    function speelBeurt(spelerNr) {
+        let dobbelsteen1 = gooiDobbelsteen();
+        let dobbelsteen2 = gooiDobbelsteen();
+
+        let stapjesVooruit = dobbelsteen1 + dobbelsteen2;
+
+        console.log("d1 = "+dobbelsteen1+" ; d2 = "+dobbelsteen2+" ; stapjesVooruit = "+stapjesVooruit);
+
+        let landingsPlaats  = plek[spelerNr] + stapjesVooruit;
+
+        if (landingsPlaats >= spelbord.length) {
+            alert("Speler "+(spelerNr+1)+" is de winnaar !");
+        }
+
+        let oudePlek = plek[spelerNr];
+        let nieuwePlek = spelbord[ landingsPlaats ];
+
+        plek[spelerNr] = nieuwePlek ;
+
+        console.log("Nieuwe positie voor speler "+spelerNr+ " = "+plek[spelerNr]);
+
+        plekScherm[spelerNr].text(plek[spelerNr]+1); // Iternally we have 0 based, but visually we start from 1
+
+        clearPawn(oudePlek);
+        drawPawn(nieuwePlek, kleur[spelerNr]);
+    }
+
+    /**
+     * Returns a random integer between min (inclusive) and max (inclusive)
+     * Using Math.round() will give you a non-uniform distribution!
+     */
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function drawGrid() {
+        canvas.strokeRect(bord.offsetX, bord.offsetY, bord.width, bord.height);
+
+        for (let i=1; i <= bord.rows; i++) {
+            const rowPos = bord.offsetY+(i*cell.height);
+
+            // Horizontal line
+            canvas.beginPath();
+            canvas.moveTo(bord.offsetX, rowPos);
+            canvas.lineTo(bord.offsetX+bord.width, rowPos);
+            canvas.stroke();
+        }
+
+        for (let i=1; i <= bord.cols; i++) {
+            const colPos = bord.offsetX+(i*cell.width);
+
+            // Vertical line
+            canvas.beginPath();
+            canvas.moveTo(colPos, bord.offsetY);
+            canvas.lineTo(colPos, bord.offsetY+bord.height);
+            canvas.stroke();
+        }
+
+    }
+
+    // Attempt to draw a pawn
+    function drawPawn(position, style) {
+        canvas.save();
+
+        if (position < 0 || position > spelbord.length) {
+            return;
+        }
+
+        const {row, col} = calculateRowColFromPosition(position);
+
+        const x = bord.offsetX+(cell.width/2) + (col*cell.width);
+        const y = bord.offsetY+(cell.height/2) + (row*cell.height);
+        const radius = (cell.height/2) - 15;
+
+        canvas.beginPath();
+        canvas.arc(x, y, radius, 0, 2*Math.PI);
+        canvas.fillStyle = style;
+        canvas.fill();
+
+        canvas.restore();
+    }
+
+    function calculateRowColFromPosition(position) {
+        const row = (bord.rows - 1) - Math.floor(position / bord.cols); // Our positions move up from below to the top. Hence, we start at the bottom row. -1 due to zero base.
+
+        let col = Math.floor(position % bord.cols);
+        // The bord waves to the top, so the odd lines we move right, the even lines we move left
+        if (row % 2 == 0) {
+            col = (bord.cols-1) - col; // -1 since we are zero based
+        }
+
+        return {
+            row : row,
+            col : col
+        };
+    }
+
+    function clearPawn(position) {
+        if (position < 0 || position > spelbord.length) {
+            return;
+        }
+
+        const {row, col} = calculateRowColFromPosition(position);
+
+        // Pawn is cellHeight - 30 in diameter. So we take it slightly larger to clear it
+        const width = cell.width  - 28;
+        const height = cell.height - 28;
+        // Rectangle should be a bounded box around the circular pawn
+        const x = bord.offsetX + 14 + (col * cell.width); // Left
+        const y = bord.offsetY + 14 + (row * cell.height); // Top
+
+        canvas.clearRect(x, y, width, height);
+    }
+</script>
 
 </body>
 </html>
