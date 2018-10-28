@@ -117,6 +117,8 @@
         //
         // drawPawn(10, 'yellow');
         // drawPawn(11, 'orange');
+        // drawPawn(99, 'black');
+        // drawPawn(100, 'white');
     });
 
     function gooiDobbelsteen() {
@@ -158,6 +160,22 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function calculateRowColFromPosition(position) {
+        const row = (bord.rows - 1) - Math.floor(position / bord.cols); // Our positions move up from below to the top. Hence, we start at the bottom row. -1 due to zero base.
+
+        let col = Math.floor(position % bord.cols);
+        // The bord waves to the top, so the odd lines we move right, the even lines we move left
+        if (row % 2 === 0) {
+            col = (bord.cols-1) - col; // -1 since we are zero based
+        }
+
+        return {
+            row : row,
+            col : col
+        };
+    }
+
+
     function drawGrid() {
         canvas.strokeRect(bord.offsetX, bord.offsetY, bord.width, bord.height);
 
@@ -183,11 +201,12 @@
 
     }
 
+
     // Attempt to draw a pawn
     function drawPawn(position, style) {
         canvas.save();
 
-        if (position < 0 || position > spelbord.length) {
+        if (position < 0 || position >= spelbord.length) {
             return;
         }
 
@@ -205,23 +224,9 @@
         canvas.restore();
     }
 
-    function calculateRowColFromPosition(position) {
-        const row = (bord.rows - 1) - Math.floor(position / bord.cols); // Our positions move up from below to the top. Hence, we start at the bottom row. -1 due to zero base.
-
-        let col = Math.floor(position % bord.cols);
-        // The bord waves to the top, so the odd lines we move right, the even lines we move left
-        if (row % 2 == 0) {
-            col = (bord.cols-1) - col; // -1 since we are zero based
-        }
-
-        return {
-            row : row,
-            col : col
-        };
-    }
 
     function clearPawn(position) {
-        if (position < 0 || position > spelbord.length) {
+        if (position < 0 || position >= spelbord.length) {
             return;
         }
 
