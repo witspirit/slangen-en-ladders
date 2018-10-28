@@ -56,10 +56,17 @@
     <img src="spelbord-small.jpg" alt="Slangen-en-ladders Spelbord"/>
 </canvas>
 
+<canvas id="d1" width="36" height="36">
+</canvas>
+<canvas id="d2" width="36" height="36">
+</canvas>
+
 
 
 <script language="JavaScript">
     let bordUi = CanvasBord(document.getElementById('spelbord').getContext('2d'));
+    let d1Ui = CanvasDobbelsteen(document.getElementById('d1').getContext('2d'));
+    let d2Ui = CanvasDobbelsteen(document.getElementById('d2').getContext('2d'));
 
     let spelbord = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -108,6 +115,8 @@
         let stapjesVooruit = dobbelsteen1 + dobbelsteen2;
 
         console.log("d1 = "+dobbelsteen1+" ; d2 = "+dobbelsteen2+" ; stapjesVooruit = "+stapjesVooruit);
+        d1Ui.toon(dobbelsteen1);
+        d2Ui.toon(dobbelsteen2);
 
         let landingsPlaats  = plek[spelerNr] + stapjesVooruit;
 
@@ -254,6 +263,76 @@
             tekenSpelbord : drawGrid,
             verzetPion : movePawn,
             toonTestPatroon : drawTestPattern
+        }
+    }
+
+
+    function CanvasDobbelsteen(canvas) {
+        const side = 36;
+        const cellSide = 12;
+
+        function drawOutline() {
+            canvas.clearRect(0, 0, side, side);
+            canvas.strokeRect(0, 0, side, side);
+        }
+
+        function circleAt(row, col) {
+            let x = 6 + (col*cellSide);
+            let y = 6 + (row*cellSide);
+
+            canvas.beginPath();
+            canvas.arc(x, y, 5, 0, 2*Math.PI);
+            canvas.fill();
+        }
+
+        function show(amount) {
+            if (amount < 1 || amount > 6) {
+                console.log('Amount '+amount+" out of bounds. Only values between 1 and 6 are allowed");
+                return;
+            }
+
+            drawOutline();
+            switch (amount) {
+                case 1:
+                    circleAt(1, 1);
+                    break;
+                case 2:
+                    circleAt(0, 0);
+                    circleAt(2, 2);
+                    break;
+                case 3:
+                    circleAt(0, 0);
+                    circleAt(1, 1);
+                    circleAt(2, 2);
+                    break;
+                case 4:
+                    circleAt(0, 0);
+                    circleAt(2, 0);
+                    circleAt(0, 2);
+                    circleAt(2, 2);
+                    break;
+                case 5:
+                    circleAt(0, 0);
+                    circleAt(2, 0);
+                    circleAt(1, 1);
+                    circleAt(0, 2);
+                    circleAt(2, 2);
+                    break;
+                case 6:
+                    circleAt(0, 0);
+                    circleAt(1, 0);
+                    circleAt(2, 0);
+                    circleAt(0, 2);
+                    circleAt(1, 2);
+                    circleAt(2, 2);
+                    break;
+            }
+        }
+
+        drawOutline();
+
+        return {
+            toon : show
         }
     }
 
