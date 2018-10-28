@@ -43,6 +43,7 @@
 
         let plek = [-1, -1, -1, -1];
         let plekScherm = [null, null, null, null];
+        let kleur = ['red', 'yellow', 'green', 'blue'];
 
         $(document).ready(function () {
 
@@ -81,13 +82,18 @@
                 alert("Speler "+(spelerNr+1)+" is de winnaar !");
             }
 
-            plek[spelerNr] = spelbord[ landingsPlaats ] ;
+            let oudePlek = plek[spelerNr];
+            let nieuwePlek = spelbord[ landingsPlaats ];
+
+            plek[spelerNr] = nieuwePlek ;
 
             console.log("Nieuwe positie voor speler "+spelerNr+ " = "+plek[spelerNr]);
 
             plekScherm[spelerNr].text(plek[spelerNr]);
 
-
+            let canvas = getCanvas();
+            clearPawn(oudePlek, canvas);
+            drawPawn(nieuwePlek, kleur[spelerNr], canvas);
          }
 
         /**
@@ -98,9 +104,12 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        function getCanvas(){
+            return document.getElementById('spelbord').getContext('2d');
+        }
+
         function drawGrid() {
-            let spelbord = document.getElementById('spelbord');
-            let ctx = spelbord.getContext('2d');
+            let ctx = getCanvas();
             if (!ctx) {
                 return;
             }
@@ -124,25 +133,31 @@
                 ctx.stroke();
             }
 
-            drawPawn(9 , 'green', ctx);
-            drawPawn(10 , 'orange', ctx);
-            drawPawn(11, 'red', ctx);
-            drawPawn(19, 'blue', ctx);
-            drawPawn(20, 'yellow', ctx);
+            // drawPawn(9 , 'green', ctx);
+            // drawPawn(10 , 'orange', ctx);
+            // clearPawn(10, ctx);
+            // drawPawn(11, 'red', ctx);
+            // drawPawn(19, 'blue', ctx);
+            // clearPawn(19, ctx);
+            // drawPawn(20, 'yellow', ctx);
         }
 
         // Attempt to draw a pawn
         function drawPawn(position, style, canvas) {
+            canvas.save();
+
             if (position < 0 || position > 100) {
                 return;
             }
 
-            const row = Math.floor(position / 10);
-            let col = Math.floor(position % 10);
-            // The bord waves to the top, so the even lines we move right, the odd lines we move left
-            if (row % 2 != 0) {
-                col = 9 - col;
-            }
+            const {row, col} = calculateRowColFromPosition(position);
+
+            // const row = Math.floor(position / 10);
+            // let col = Math.floor(position % 10);
+            // // The bord waves to the top, so the even lines we move right, the odd lines we move left
+            // if (row % 2 != 0) {
+            //     col = 9 - col;
+            // }
 
             const x = bordOffsetX+(cellWidth/2) + (col*cellWidth);
             const y = bordOffsetY+bordHeight-(cellHeight/2) - (row*cellHeight);
@@ -152,6 +167,39 @@
             canvas.arc(x, y, radius, 0, 2*Math.PI);
             canvas.fillStyle = style;
             canvas.fill();
+
+            canvas.restore();
+        }
+
+        function calculateRowColFromPosition(position) {
+            const row = Math.floor(position / 10);
+            let col = Math.floor(position % 10);
+            // The bord waves to the top, so the even lines we move right, the odd lines we move left
+            if (row % 2 != 0) {
+                col = 9 - col;
+            }
+
+            return {
+                row : row,
+                col : col
+            };
+        }
+
+        function clearPawn(position, canvas) {
+            if (position < 0 || position > 100) {
+                return;
+            }
+
+            const {row, col} = calculateRowColFromPosition(position);
+
+            // Pawn is cellHeight - 30 in diameter. So we take it slightly larger to clear it
+            const width = cellWidth  - 28;
+            const height = cellHeight - 28;
+            // Rectangle should be a bounded box around the circular pawn
+            const x = bordOffsetX + 14 + (col * cellWidth); // Left (we work from left to right for columns)
+            const y = bordOffsetY + bordHeight - cellHeight + 14 - (row*cellHeight); // Top (we work from bottom to top for rows)
+
+            canvas.clearRect(x, y, width, height);
         }
     </script>
 </head>
