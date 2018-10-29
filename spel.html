@@ -89,19 +89,72 @@
         return getRandomInt(1, 6);
     }
 
+    function worp() {
+        let d1 = gooiDobbelsteen();
+        let d2 = gooiDobbelsteen();
+
+        d1Ui.toon(d1);
+        d2Ui.toon(d2);
+
+        let totaleWorp = d1 + d2;
+
+        console.log("d1 = "+d1+" ; d2 = "+d2+" ; totaleWorp = "+totaleWorp);
+
+        return {
+            d1,
+            d2,
+            totaleWorp
+        }
+    }
+
+    function spelerOp(positie) {
+        return !spelers.every((speler) => speler.positie() !== positie);
+    }
+
     function speelBeurt(speler) {
-        let dobbelsteen1 = gooiDobbelsteen();
-        let dobbelsteen2 = gooiDobbelsteen();
+        let {d1, d2, totaleWorp} = worp();
 
-        let stapjesVooruit = dobbelsteen1 + dobbelsteen2;
+        if (speler.positie() < 0) {
+            // We staan nog niet op het bord. Dan moeten we eerst een 6 gooien.
+            if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
+                // We hebben onze 6 gegooid, dus we mogen nog eens om onze effectieve positie te bepalen.
+                console.log(speler.naam+' : Joepie 6, we komen in het spel!');
+                // Hmmm... Dit moet toch beter kunnen ? Waarom lukt die decompositie hier niet ?
+                let nieuweWorp = worp();
+                d1 = nieuweWorp.d1;
+                d2 = nieuweWorp.d2;
+                totaleWorp = nieuweWorp.totaleWorp;
+            } else {
+                // We hebben pech... We mogen nog niet verder
+                console.log(speler.naam+' : Nog geen 6...');
+                return;
+            }
+        }
 
-        console.log("d1 = "+dobbelsteen1+" ; d2 = "+dobbelsteen2+" ; stapjesVooruit = "+stapjesVooruit);
-        d1Ui.toon(dobbelsteen1);
-        d2Ui.toon(dobbelsteen2);
+        let landingsPlaats  = speler.positie() + totaleWorp;
 
-        let landingsPlaats  = speler.positie() + stapjesVooruit;
+        // Spelers mogen niet samen op dezelfde plek staan
+        while (spelerOp(landingsPlaats)) {
+            console.log(speler.naam+' : Er staat al iemand op '+landingsPlaats);
+            landingsPlaats++;
+        }
 
+        // Als we voorbij het einde uitkomen, blijven we gewoon staan...
         if (landingsPlaats >= spelbord.length) {
+            console.log(speler.naam+' : Voorbij het einde. We moeten blijven staan.');
+
+            // FIXME : Ugly repeat !
+            // Als we een 6 hebben gegooid, mogen we nog een keer...
+            if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
+                console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
+                speelBeurt(speler);
+            }
+
+            return;
+        }
+
+        // Als we mooi op de laatste plaats landen, hebben we een winnaar
+        if (landingsPlaats === spelbord.length-1) {
             alert(speler.naam+" is de winnaar !");
         }
 
@@ -110,9 +163,15 @@
 
         speler.gaNaar(nieuwePlek);
 
-        console.log("Nieuwe positie voor "+speler.naam+ " = "+speler.positie());
+        console.log(speler.naam+' : Nieuwe positie  = '+speler.positie());
 
         bordUi.verzetPion(speler.kleur, oudePlek, nieuwePlek);
+
+        // Als we een 6 hebben gegooid, mogen we nog een keer...
+        if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
+            console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
+            speelBeurt(speler);
+        }
     }
 
     /**
