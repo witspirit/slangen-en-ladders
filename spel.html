@@ -26,26 +26,7 @@
 <hr/>
 
 <div class="posities">
-    <div class="speler">
-        <div>Sarah</div>
-        <div id="plekSarah">0</div>
-        <div><button id="speelSarah">Speel Beurt</button></div>
-    </div>
-    <div class="speler">
-        <div>Liesbeth</div>
-        <div id="plekLiesbeth">0</div>
-        <div><button id="speelLiesbeth">Speel Beurt</button></div>
-    </div>
-    <div class="speler">
-        <div>Mama</div>
-        <div id="plekMama">0</div>
-        <div><button id="speelMama">Speel Beurt</button></div>
-    </div>
-    <div class="speler">
-        <div>Papa</div>
-        <div id="plekPapa">0</div>
-        <div><button id="speelPapa">Speel Beurt</button></div>
-    </div>
+    <!-- Speler overzicht komt hier -->
 </div>
 
 <!--<div class="spelbord">-->
@@ -81,9 +62,12 @@
         90, 33, 92, 93, 25, 95, 96, 97, 28, 99
     ];
 
-    let plek = [-1, -1, -1, -1];
-    let plekScherm = [null, null, null, null];
-    let kleur = ['red', 'yellow', 'green', 'blue'];
+    let spelers = [
+        Speler('Sarah', 'red'),
+        Speler('Liesbeth', 'yellow'),
+        Speler('Mama', 'green'),
+        Speler('Papa', 'blue')
+    ];
 
     $(document).ready(function () {
 
@@ -91,15 +75,12 @@
         //     $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
         // });
 
-        $('#speelSarah').on("click", () => speelBeurt(0));
-        $('#speelLiesbeth').on("click", () => speelBeurt(1));
-        $('#speelMama').on("click", () => speelBeurt(2));
-        $('#speelPapa').on("click", () => speelBeurt(3));
+        let spelersGebied = $('.posities');
 
-        plekScherm[0] = $('#plekSarah');
-        plekScherm[1] = $('#plekLiesbeth');
-        plekScherm[2] = $('#plekMama');
-        plekScherm[3] = $('#plekPapa');
+        spelers.forEach((speler) => {
+           speler.voegToeAan(spelersGebied);
+           speler.bijBeurt(() => speelBeurt(speler));
+        });
 
         bordUi.tekenSpelbord();
     });
@@ -108,7 +89,7 @@
         return getRandomInt(1, 6);
     }
 
-    function speelBeurt(spelerNr) {
+    function speelBeurt(speler) {
         let dobbelsteen1 = gooiDobbelsteen();
         let dobbelsteen2 = gooiDobbelsteen();
 
@@ -118,22 +99,20 @@
         d1Ui.toon(dobbelsteen1);
         d2Ui.toon(dobbelsteen2);
 
-        let landingsPlaats  = plek[spelerNr] + stapjesVooruit;
+        let landingsPlaats  = speler.positie() + stapjesVooruit;
 
         if (landingsPlaats >= spelbord.length) {
-            alert("Speler "+(spelerNr+1)+" is de winnaar !");
+            alert(speler.naam+" is de winnaar !");
         }
 
-        let oudePlek = plek[spelerNr];
+        let oudePlek = speler.positie();
         let nieuwePlek = spelbord[ landingsPlaats ];
 
-        plek[spelerNr] = nieuwePlek ;
+        speler.gaNaar(nieuwePlek);
 
-        console.log("Nieuwe positie voor speler "+spelerNr+ " = "+plek[spelerNr]);
+        console.log("Nieuwe positie voor "+speler.naam+ " = "+speler.positie());
 
-        plekScherm[spelerNr].text(plek[spelerNr]+1); // Iternally we have 0 based, but visually we start from 1
-
-        bordUi.verzetPion(kleur[spelerNr], oudePlek, nieuwePlek);
+        bordUi.verzetPion(speler.kleur, oudePlek, nieuwePlek);
     }
 
     /**
@@ -144,6 +123,42 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function Speler(naam, kleur) {
+        let positie = -1;
+        let positieEl = null;
+        let playButton = null;
+
+        function addPlayer(parentElement) {
+            let container = $(`
+                <div class="speler">
+                    <div class="naam"></div>
+                    <div class="positie">0</div>
+                    <div><button>Speel Beurt</button></div>
+                </div>
+            `);
+
+            container.find('.naam').text(naam);
+            positieEl = container.find('.positie');
+            playButton = container.find('button');
+
+            parentElement.append(container);
+        }
+
+        function moveTo(nieuwePositie) {
+            positie = nieuwePositie;
+            positieEl.text(positie+1); // Internally 0-based, visually 1-based
+        }
+
+
+        return {
+            naam : naam,
+            kleur : kleur,
+            positie : () => positie,
+            gaNaar : moveTo,
+            voegToeAan : addPlayer,
+            bijBeurt : (actie) => playButton.on('click', actie)
+        }
+    }
 
 
     function CanvasBord(canvas) {
