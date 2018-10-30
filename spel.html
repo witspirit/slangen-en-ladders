@@ -45,6 +45,9 @@
 
 
 <script language="JavaScript">
+    const SPEEL_OPNIEUW = false;
+    const VOLGENDE_SPELER = true;
+
     let bordUi = CanvasBord(document.getElementById('spelbord').getContext('2d'));
     let d1Ui = CanvasDobbelsteen(document.getElementById('d1').getContext('2d'));
     let d2Ui = CanvasDobbelsteen(document.getElementById('d2').getContext('2d'));
@@ -65,9 +68,11 @@
     let spelers = [
         Speler('Sarah', 'red'),
         Speler('Liesbeth', 'yellow'),
-        Speler('Mama', 'green'),
-        Speler('Papa', 'blue')
+        // Speler('Mama', 'green'),
+        // Speler('Papa', 'blue')
     ];
+    let actieveSpeler = getRandomInt(0, spelers.length-1);
+
 
     $(document).ready(function () {
 
@@ -79,31 +84,55 @@
 
         spelers.forEach((speler) => {
            speler.voegToeAan(spelersGebied);
-           speler.bijBeurt(() => speelBeurt(speler));
+           speler.bijBeurt(() => speelVerder(speler));
         });
 
         bordUi.tekenSpelbord();
+
+        spelers[actieveSpeler].magSpelen(true);
     });
+
+    function speelVerder(speler) {
+        let spelerKlaar = speelBeurt(speler);
+
+        // Als de speler op de laatste plaats staat, hebben we een winnaar
+        if (speler.positie() === spelbord.length-1) {
+            alert(speler.naam+" is de winnaar !");
+            speler.magSpelen(false);
+            return;
+        }
+
+        if (spelerKlaar) {
+            actieveSpeler++;
+            if (actieveSpeler >= spelers.length) {
+                actieveSpeler = 0;
+            }
+            speler.magSpelen(false);
+            spelers[actieveSpeler].magSpelen(true);
+        }
+    }
 
     function gooiDobbelsteen() {
         return getRandomInt(1, 6);
     }
 
-    function worp() {
+    function gooiDobbelstenen() {
         let d1 = gooiDobbelsteen();
         let d2 = gooiDobbelsteen();
 
         d1Ui.toon(d1);
         d2Ui.toon(d2);
 
-        let totaleWorp = d1 + d2;
+        let totaal = d1 + d2;
+        let bevat6 = d1 === 6 || d2 === 6 || totaal === 6;
 
-        console.log("d1 = "+d1+" ; d2 = "+d2+" ; totaleWorp = "+totaleWorp);
+        console.log("d1 = "+d1+" ; d2 = "+d2+" ; totaal = "+totaal);
 
         return {
             d1,
             d2,
-            totaleWorp
+            totaal,
+            bevat6
         }
     }
 
@@ -112,27 +141,36 @@
     }
 
     function speelBeurt(speler) {
-        let {d1, d2, totaleWorp} = worp();
+        let worp = gooiDobbelstenen();
 
         if (speler.positie() < 0) {
             // We staan nog niet op het bord. Dan moeten we eerst een 6 gooien.
-            if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
+            if (worp.bevat6) {
                 // We hebben onze 6 gegooid, dus we mogen nog eens om onze effectieve positie te bepalen.
                 console.log(speler.naam+' : Joepie 6, we komen in het spel!');
-                // Hmmm... Dit moet toch beter kunnen ? Waarom lukt die decompositie hier niet ?
-                let nieuweWorp = worp();
-                d1 = nieuweWorp.d1;
-                d2 = nieuweWorp.d2;
-                totaleWorp = nieuweWorp.totaleWorp;
+
+                verplaatsNaar(0, speler);
+
+                return SPEEL_OPNIEUW;
             } else {
                 // We hebben pech... We mogen nog niet verder
                 console.log(speler.naam+' : Nog geen 6...');
-                return;
+                return VOLGENDE_SPELER;
             }
         }
 
-        let landingsPlaats  = speler.positie() + totaleWorp;
+        verplaatsNaar(speler.positie()+worp.totaal, speler);
 
+        // Als we een 6 hebben gegooid, mogen we nog een keer...
+        if (worp.bevat6) {
+            console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
+            return SPEEL_OPNIEUW;
+        } else {
+            return VOLGENDE_SPELER;
+        }
+    }
+
+    function verplaatsNaar(landingsPlaats, speler) {
         // Spelers mogen niet samen op dezelfde plek staan
         while (spelerOp(landingsPlaats)) {
             console.log(speler.naam+' : Er staat al iemand op '+landingsPlaats);
@@ -142,35 +180,15 @@
         // Als we voorbij het einde uitkomen, blijven we gewoon staan...
         if (landingsPlaats >= spelbord.length) {
             console.log(speler.naam+' : Voorbij het einde. We moeten blijven staan.');
+        } else {
+            let oudePlek = speler.positie();
+            let nieuwePlek = spelbord[ landingsPlaats ];
 
-            // FIXME : Ugly repeat !
-            // Als we een 6 hebben gegooid, mogen we nog een keer...
-            if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
-                console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
-                speelBeurt(speler);
-            }
+            speler.gaNaar(nieuwePlek);
 
-            return;
-        }
+            console.log(speler.naam+' : Nieuwe positie  = '+speler.positie());
 
-        // Als we mooi op de laatste plaats landen, hebben we een winnaar
-        if (landingsPlaats === spelbord.length-1) {
-            alert(speler.naam+" is de winnaar !");
-        }
-
-        let oudePlek = speler.positie();
-        let nieuwePlek = spelbord[ landingsPlaats ];
-
-        speler.gaNaar(nieuwePlek);
-
-        console.log(speler.naam+' : Nieuwe positie  = '+speler.positie());
-
-        bordUi.verzetPion(speler.kleur, oudePlek, nieuwePlek);
-
-        // Als we een 6 hebben gegooid, mogen we nog een keer...
-        if (d1 === 6 || d2 === 6 || totaleWorp === 6) {
-            console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
-            speelBeurt(speler);
+            bordUi.verzetPion(speler.kleur, oudePlek, nieuwePlek);
         }
     }
 
@@ -199,6 +217,7 @@
             container.find('.naam').text(naam);
             positieEl = container.find('.positie');
             playButton = container.find('button');
+            playButton.prop('disabled', true);
 
             parentElement.append(container);
         }
@@ -208,6 +227,10 @@
             positieEl.text(positie+1); // Internally 0-based, visually 1-based
         }
 
+        function allowPlay(allow) {
+            playButton.prop('disabled', !allow);
+        }
+
 
         return {
             naam : naam,
@@ -215,7 +238,8 @@
             positie : () => positie,
             gaNaar : moveTo,
             voegToeAan : addPlayer,
-            bijBeurt : (actie) => playButton.on('click', actie)
+            bijBeurt : (actie) => playButton.on('click', actie),
+            magSpelen : allowPlay
         }
     }
 
