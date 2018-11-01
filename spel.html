@@ -7,41 +7,79 @@
 
     <style>
         div {
-            border: 1px black;
+            /*border: 1px solid black;*/
         }
 
         .speler {
+            width: 200px;
+            margin-bottom: 15px;
+        }
+
+        .speler .naam {
+            min-width: 100px;
             display: inline-block;
-            width: 100px;
+        }
+
+        .speler .positie {
+            min-width: 20px;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .speler .fiche {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-left: 10px;
+        }
+
+        .info-display {
+            min-height: 2.5em;
+            margin-top: 3px;
+            margin-bottom: 3px;
         }
 
         #spelbord {
+            display: inline-block;
             background-image: url('spelbord-small.jpg');
+        }
+
+        .main {
+            display: inline-block;
+        }
+
+        .sidebar {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .dice {
+            margin-bottom: 20px;
         }
     </style>
 
 </head>
 <body>
 <h1>Slangen en Ladders</h1>
-<hr/>
 
-<div class="posities">
-    <!-- Speler overzicht komt hier -->
+<div class="main">
+    <canvas id="spelbord" width="800" height="795">
+        <img src="spelbord-small.jpg" alt="Slangen-en-ladders Spelbord"/>
+    </canvas>
 </div>
 
-<!--<div class="spelbord">-->
+<div class="sidebar">
+    <div class="dice">
+        <canvas id="d1" width="36" height="36">
+        </canvas>
+        <canvas id="d2" width="36" height="36">
+        </canvas>
+    </div>
 
-<!--</div>-->
-
-<canvas id="spelbord" width="800" height="795">
-    <img src="spelbord-small.jpg" alt="Slangen-en-ladders Spelbord"/>
-</canvas>
-
-<canvas id="d1" width="36" height="36">
-</canvas>
-<canvas id="d2" width="36" height="36">
-</canvas>
-
+    <div class="posities">
+        <!-- Speler overzicht komt hier -->
+    </div>
+</div>
 
 
 <script language="JavaScript">
@@ -72,13 +110,9 @@
         // Speler('Papa', 'blue')
     ];
     let actieveSpeler = getRandomInt(0, spelers.length-1);
-
+    let vorigeSpeler = spelers[actieveSpeler];
 
     $(document).ready(function () {
-
-        // spelbord.forEach((bestemming, positie) => {
-        //     $('.spelbord').append("<div>" + (positie + 1) + " -> " + (bestemming + 1) + "</div>");
-        // });
 
         let spelersGebied = $('.posities');
 
@@ -93,7 +127,9 @@
     });
 
     function speelVerder(speler) {
+        vorigeSpeler.info().clear();
         let spelerKlaar = speelBeurt(speler);
+        vorigeSpeler = speler;
 
         // Als de speler op de laatste plaats staat, hebben we een winnaar
         if (speler.positie() === spelbord.length-1) {
@@ -148,6 +184,7 @@
             if (worp.bevat6) {
                 // We hebben onze 6 gegooid, dus we mogen nog eens om onze effectieve positie te bepalen.
                 console.log(speler.naam+' : Joepie 6, we komen in het spel!');
+                speler.info().show('Joepie 6, we komen in het spel!');
 
                 verplaatsNaar(0, speler);
 
@@ -155,6 +192,8 @@
             } else {
                 // We hebben pech... We mogen nog niet verder
                 console.log(speler.naam+' : Nog geen 6...');
+                speler.info().show('Nog geen 6...');
+
                 return VOLGENDE_SPELER;
             }
         }
@@ -164,6 +203,7 @@
         // Als we een 6 hebben gegooid, mogen we nog een keer...
         if (worp.bevat6) {
             console.log(speler.naam+' : 6 gegooid... Nog een beurt !');
+            speler.info().show('6 gegooid... Nog een beurt !');
             return SPEEL_OPNIEUW;
         } else {
             return VOLGENDE_SPELER;
@@ -174,12 +214,14 @@
         // Spelers mogen niet samen op dezelfde plek staan
         while (spelerOp(landingsPlaats)) {
             console.log(speler.naam+' : Er staat al iemand op '+landingsPlaats);
+            speler.info().show('Er staat al iemand op '+landingsPlaats);
             landingsPlaats++;
         }
 
         // Als we voorbij het einde uitkomen, blijven we gewoon staan...
         if (landingsPlaats >= spelbord.length) {
             console.log(speler.naam+' : Voorbij het einde. We moeten blijven staan.');
+            speler.info().show('Voorbij het einde. We moeten blijven staan.');
         } else {
             let oudePlek = speler.positie();
             let nieuwePlek = spelbord[ landingsPlaats ];
@@ -204,20 +246,23 @@
         let positie = -1;
         let positieEl = null;
         let playButton = null;
+        let info = null;
 
         function addPlayer(parentElement) {
             let container = $(`
                 <div class="speler">
-                    <div class="naam"></div>
-                    <div class="positie">0</div>
+                    <div class="naam"></div><div class="positie">0</div><div class="fiche"></div>
+                    <div class="info-display">&nbsp;</div>
                     <div><button>Speel Beurt</button></div>
                 </div>
             `);
 
             container.find('.naam').text(naam);
             positieEl = container.find('.positie');
+            info = InfoDisplay(container.find('.info-display'));
             playButton = container.find('button');
             playButton.prop('disabled', true);
+            container.find('.fiche').css('background-color', kleur);
 
             parentElement.append(container);
         }
@@ -239,7 +284,8 @@
             gaNaar : moveTo,
             voegToeAan : addPlayer,
             bijBeurt : (actie) => playButton.on('click', actie),
-            magSpelen : allowPlay
+            magSpelen : allowPlay,
+            info : () => info
         }
     }
 
@@ -431,6 +477,21 @@
 
         return {
             toon : show
+        }
+    }
+
+    function InfoDisplay(displayEl) {
+        function show(message) {
+            displayEl.text(message);
+        }
+
+        function clear() {
+            displayEl.text('');
+        }
+
+        return {
+            show : show,
+            clear : clear
         }
     }
 
